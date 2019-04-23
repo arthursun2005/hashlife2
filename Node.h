@@ -10,7 +10,7 @@
 #include <cstdlib>
 #include <assert.h>
 #include <functional>
-#include <unordered_map>
+#include <unordered_set>
 
 struct Node;
 
@@ -28,7 +28,7 @@ struct std::equal_to<Node*>
 
 struct Node
 {
-    static std::unordered_map<Node*, Node*>* hashMap;
+    static std::unordered_set<Node*>* hashSet;
     
     Node* nw;
     Node* ne;
@@ -41,19 +41,19 @@ struct Node
     
     const char data;
     
-    const long population;
+    const unsigned long long population;
     
     const size_t hash;
     
     static void init() {
-        hashMap = new std::unordered_map<Node*, Node*>();
+        hashSet = new std::unordered_set<Node*>();
     }
     
     static void free() {
-        for(auto& k : *hashMap) {
-            delete k.second;
+        for(auto& k : *hashSet) {
+            delete k;
         }
-        delete hashMap;
+        delete hashSet;
     }
     
     Node(char nw, char ne, char sw, char se)  : level(1), population(nw + ne + sw + se), data((nw << 3) | (ne << 2) | (sw << 1) | (se << 0)), nw(NULL), ne(NULL), sw(NULL), se(NULL), hash(data) {
@@ -79,12 +79,12 @@ struct Node
     }
     
     Node* find() {
-        auto it = hashMap->find(this);
-        if(it != hashMap->end()) {
+        auto it = hashSet->find(this);
+        if(it != hashSet->end()) {
             delete this;
-            return it->second;
+            return *it;
         }
-        (*hashMap)[this] = this;
+        hashSet->insert(this);
         return this;
     }
     
@@ -177,58 +177,9 @@ struct Node
         return level == 1;
     }
     
-    Node* step(const LifeRule& rule)
-    {
-        if(result != NULL)
-            return result;
-        
-        if(population == 0)
-            return result = nw;
-        
-        if(level == 2) {
-            return result = apply(rule);
-        }
-        
-        Node* n00 = nw->step(rule);
-        Node* n01 = create(nw->ne, ne->nw, nw->se, ne->sw)->step(rule);
-        Node* n02 = ne->step(rule);
-        Node* n10 = create(nw->sw, nw->se, sw->nw, sw->ne)->step(rule);
-        Node* n11 = create(nw->se, ne->sw, sw->ne, se->nw)->step(rule);
-        Node* n12 = create(ne->sw, ne->se, se->nw, se->ne)->step(rule);
-        Node* n20 = sw->step(rule);
-        Node* n21 = create(sw->ne, se->nw, sw->se, se->sw)->step(rule);
-        Node* n22 = se->step(rule);
-        
-        return result = create(
-           create(n00, n01, n10, n11)->step(rule),
-           create(n01, n02, n11, n12)->step(rule),
-           create(n10, n11, n20, n21)->step(rule),
-           create(n11, n12, n21, n22)->step(rule)
-        );
-    }
+    Node* step(const LifeRule& rule);
     
-    Node* expand() {
-        if(isLeaf()) {
-            return create(
-              create(0, 0, 0, at(3)),
-              create(0, 0, at(2), 0),
-              create(0, at(1), 0, 0),
-              create(at(0), 0, 0, 0)
-            );
-        }
-        
-        Node* empty = Node::create(level - 1);
-        
-        Node* n0 = create(empty, empty, empty, nw);
-        
-        Node* n1 = create(empty, empty, ne, empty);
-        
-        Node* n2 = create(empty, sw, empty, empty);
-        
-        Node* n3 = create(se, empty, empty, empty);
-        
-        return create(n0, n1, n2, n3);
-    }
+    Node* expand();
     
     Node* apply(const LifeRule& rule);
 };

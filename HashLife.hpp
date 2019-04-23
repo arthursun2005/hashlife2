@@ -10,7 +10,6 @@
 #define HashLife_hpp
 
 #include "Node.h"
-#include <unordered_map>
 
 class HashLife
 {
@@ -18,14 +17,12 @@ class HashLife
 protected:
         
     Node* root;
-        
-    std::unordered_map<Node*, Node*> cache;
     
     LifeRule rule;
     
 public:
     
-    size_t generations = 0;
+    unsigned long long generations = 0;
     
     HashLife() {
         root = Node::create(5);

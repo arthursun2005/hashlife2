@@ -25,10 +25,10 @@ void printAll() {
         printf("%.5f\n", ms(i));
 }
 
-int n = 20;
+int n = 60;
 
-int x = -1;
-int y = -1;
+int x = 0;
+int y = 0;
 
 int main(int argc, const char * argv[]) {
     Node::init();
@@ -50,12 +50,12 @@ int main(int argc, const char * argv[]) {
     mark;
     
     printAll();
-        
-    printf("population: %ld \n", life->getRoot()->population);
+    
+    printf("population: %llu \n", life->getRoot()->population);
         
     printf("root size: %d \n", life->getRoot()->level);
     
-    printf("gen: %zu \n", life->generations);
+    printf("gen: %llu \n", life->generations);
     
     Node::free();
     
