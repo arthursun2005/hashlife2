@@ -10,68 +10,94 @@
 #include <cstdlib>
 #include <assert.h>
 #include <functional>
+#include <unordered_map>
 
-class NodePool;
+struct Node;
+
+template <>
+struct std::hash<Node*>
+{
+    size_t operator () (const Node* node) const;
+};
+
+template <>
+struct std::equal_to<Node*>
+{
+    bool operator () (const Node* a, const Node* b) const;
+};
 
 struct Node
 {
+    static std::unordered_map<Node*, Node*>* hashMap;
+    
     Node* nw;
     Node* ne;
     Node* sw;
     Node* se;
     
-    int level;
+    Node* result = NULL;
     
-    char data = 0;
+    const int level;
     
-    long population = 0;
+    const char data;
     
-    size_t hash;
+    const long population;
     
-    Node() {
+    const size_t hash;
+    
+    static void init() {
+        hashMap = new std::unordered_map<Node*, Node*>();
     }
     
-    Node(const Node* node) {
-        population = node->population;
-        data = node->data;
-        level = node->level;
-        hash = node->hash;
-        
-        if(!node->isLeaf()) {
-            nw = new Node(node->nw);
-            ne = new Node(node->ne);
-            sw = new Node(node->sw);
-            se = new Node(node->se);
+    static void free() {
+        for(auto& k : *hashMap) {
+            delete k.second;
+        }
+        delete hashMap;
+    }
+    
+    Node(char nw, char ne, char sw, char se)  : level(1), population(nw + ne + sw + se), data((nw << 3) | (ne << 2) | (sw << 1) | (se << 0)), nw(NULL), ne(NULL), sw(NULL), se(NULL), hash(data) {
+    }
+    
+    Node(int level) : level(level), population(0), data(0), hash(0) {
+        if(!isLeaf()) {
+            Node* empty = create(level - 1);
+            
+            nw = empty;
+            ne = empty;
+            sw = empty;
+            se = empty;
+        }else{
+            nw = ne = sw = se = NULL;
         }
     }
     
-    Node(int level) : level(level) {
-        if(level > 1) {
-            nw = new Node(level - 1);
-            ne = new Node(level - 1);
-            sw = new Node(level - 1);
-            se = new Node(level - 1);
-        }
-    }
-    
-    Node(Node* nw, Node* ne, Node* sw, Node* se) {
-        set(nw, ne, sw, se);
+    Node(Node* nw, Node* ne, Node* sw, Node* se)  : level(nw->level + 1), population(nw->population + ne->population + sw->population + se->population), data(0), nw(nw), ne(ne), sw(sw), se(se), hash(nw->hash + ne->hash * 11 + sw->hash * 511 + se->hash * 10007) {
     }
     
     ~Node() {
     }
     
-    void destory() {
-        if(!isLeaf()) {
-            nw->destory();
-            delete nw;
-            ne->destory();
-            delete ne;
-            sw->destory();
-            delete sw;
-            se->destory();
-            delete se;
+    Node* find() {
+        auto it = hashMap->find(this);
+        if(it != hashMap->end()) {
+            delete this;
+            return it->second;
         }
+        (*hashMap)[this] = this;
+        return this;
+    }
+    
+    inline static Node* create(int level) {
+        return (new Node(level))->find();
+    }
+    
+    inline static Node* create(char nw, char ne, char sw, char se) {
+        return (new Node(nw, ne, sw, se))->find();
+    }
+    
+    inline static Node* create(Node* nw, Node* ne, Node* sw, Node* se) {
+        return (new Node(nw, ne, sw, se))->find();
     }
     
     inline char at(char i) const
@@ -79,71 +105,33 @@ struct Node
         return (data&(1 << i)) >> i;
     }
     
-    void set(char position, char x)
+    Node* set(int x, int y, int k) const
     {
-        char oldBit = at(position);
-        
-        data &= ~(1 << position);
-        data |= (x << position);
-        
-        population += x - oldBit;
-    }
-    
-    void clear() {
-        data = 0;
-        population = 0;
-        if(!isLeaf()) {
-            nw->clear();
-            ne->clear();
-            sw->clear();
-            se->clear();
-        }
-    }
-    
-    char set(int x, int y, int k) {
         if(isLeaf()) {
-            /**
-             (-1, 0),  (0, 0)
-             (-1, -1), (0, -1)
-             */
+            char q[] = {at(3), at(2), at(1), at(0)};
+            q[-2 * y + x + 1] = k;
             
-            long pp = population;
-            
-            if(pp == 0) data = 0;
-            
-            set(y * 2 - x + 2, k);
-            
-            return population - pp;
+            return create(q[0], q[1], q[2], q[3]);
         }
         
         int qwidth = 1 << (level - 2);
-        
-        if(population == 0) {
-            nw->population = 0;
-            ne->population = 0;
-            sw->population = 0;
-            se->population = 0;
-        }
-        
-        char dp;
+        Node* q[] = {nw, ne, sw, se};
         
         if(x >= 0) {
             if(y >= 0) {
-                dp = ne->set(x - qwidth, y - qwidth, k);
+                q[1] = ne->set(x - qwidth, y - qwidth, k);
             }else{
-                dp = se->set(x - qwidth, y + qwidth, k);
+                q[3] = se->set(x - qwidth, y + qwidth, k);
             }
         }else{
             if(y >= 0) {
-                dp = nw->set(x + qwidth, y - qwidth, k);
+                q[0] = nw->set(x + qwidth, y - qwidth, k);
             }else{
-                dp = sw->set(x + qwidth, y + qwidth, k);
+                q[2] = sw->set(x + qwidth, y + qwidth, k);
             }
         }
         
-        population += dp;
-        
-        return k;
+        return create(q[0], q[1], q[2], q[3]);
     }
     
     char at(int x, int y) const
@@ -172,51 +160,16 @@ struct Node
         }
     }
     
-    inline void print() {
+    inline void print() const
+    {
         int width = 1 << level;
         int hwidth = 1 << (level - 1);
         for(int y = width - 1; y >= 0; --y) {
             for(int x = 0; x < width; ++x) {
-                if(x == hwidth && y == hwidth)
-                    printf("r");
-                else printf("%c", at(x - hwidth, y - hwidth) * 3 + ' ');
+                printf("%c", at(x - hwidth, y - hwidth) * 3 + ' ');
             }
             printf("\n");
         }
-    }
-    
-    void set(const Node* node)
-    {
-        data = node->data;
-        population = node->population;
-        hash = node->hash;
-        
-        if(!isLeaf()) {
-            nw->set(node->nw);
-            ne->set(node->ne);
-            sw->set(node->sw);
-            se->set(node->se);
-        }
-    }
-    
-    inline void updatePopulation()
-    {
-        if(!isLeaf()) {
-            population = nw->population + ne->population + sw->population + se->population;
-        }
-    }
-    
-    void set(Node* _nw, Node* _ne, Node* _sw, Node* _se)
-    {
-        nw = _nw;
-        ne = _ne;
-        sw = _sw;
-        se = _se;
-        
-        level = _nw->level + 1;
-        updatePopulation();
-        
-        computeHash();
     }
     
     inline bool isLeaf() const
@@ -224,91 +177,58 @@ struct Node
         return level == 1;
     }
     
-    void computeHash() {
+    Node* step(const LifeRule& rule)
+    {
+        if(result != NULL)
+            return result;
+        
+        if(population == 0)
+            return result = nw;
+        
+        if(level == 2) {
+            return result = apply(rule);
+        }
+        
+        Node* n00 = nw->step(rule);
+        Node* n01 = create(nw->ne, ne->nw, nw->se, ne->sw)->step(rule);
+        Node* n02 = ne->step(rule);
+        Node* n10 = create(nw->sw, nw->se, sw->nw, sw->ne)->step(rule);
+        Node* n11 = create(nw->se, ne->sw, sw->ne, se->nw)->step(rule);
+        Node* n12 = create(ne->sw, ne->se, se->nw, se->ne)->step(rule);
+        Node* n20 = sw->step(rule);
+        Node* n21 = create(sw->ne, se->nw, sw->se, se->sw)->step(rule);
+        Node* n22 = se->step(rule);
+        
+        return result = create(
+           create(n00, n01, n10, n11)->step(rule),
+           create(n01, n02, n11, n12)->step(rule),
+           create(n10, n11, n20, n21)->step(rule),
+           create(n11, n12, n21, n22)->step(rule)
+        );
+    }
+    
+    Node* expand() {
         if(isLeaf()) {
-            hash = data;
-            return;
+            return create(
+              create(0, 0, 0, at(3)),
+              create(0, 0, at(2), 0),
+              create(0, at(1), 0, 0),
+              create(at(0), 0, 0, 0)
+            );
         }
         
-        hash = (11 * nw->hash) + (13 * ne->hash) + (31 * sw->hash) + (se->hash * 101);
+        Node* empty = Node::create(level - 1);
+        
+        Node* n0 = create(empty, empty, empty, nw);
+        
+        Node* n1 = create(empty, empty, ne, empty);
+        
+        Node* n2 = create(empty, sw, empty, empty);
+        
+        Node* n3 = create(se, empty, empty, empty);
+        
+        return create(n0, n1, n2, n3);
     }
     
-    void computeAllHashs() {
-        if(population == 0) {
-            hash = 0;
-            return;
-        }
-        
-        if(!isLeaf()) {
-            nw->computeAllHashs();
-            ne->computeAllHashs();
-            sw->computeAllHashs();
-            se->computeAllHashs();
-        }
-        
-        computeHash();
-    }
-    
-    void assign_cnt(Node* n) {
-        assert(level == n->level + 1);
-        
-        if(n->isLeaf()) {
-            
-            nw->set(0, n->at(3));
-            
-            ne->set(1, n->at(2));
-            
-            sw->set(2, n->at(1));
-            
-            se->set(3, n->at(0));
-            
-            updatePopulation();;
-            
-        }else{
-            
-            nw->se = n->nw;
-            
-            ne->sw = n->ne;
-            
-            sw->ne = n->sw;
-            
-            se->nw = n->se;
-            
-            nw->updatePopulation();
-            ne->updatePopulation();
-            sw->updatePopulation();
-            se->updatePopulation();
-            
-            updatePopulation();
-        }
-    }
-    
-    Node* apply(const LifeRule& rule, NodePool* pool);
-};
-
-template <>
-struct std::hash<Node*>
-{
-    inline size_t operator () (const Node* node) const
-    {
-        return node->hash;
-    }
-};
-
-template <>
-struct std::equal_to<Node*>
-{
-    bool operator () (const Node* a, const Node* b) const
-    {
-        if(a->level != b->level)
-            return false;
-        
-        if(a->population != b->population)
-            return false;
-        
-        if(a->isLeaf())
-            return a->data == b->data;
-        
-        return operator() (a->nw, b->nw) && operator() (a->ne, b->ne) && operator() (a->sw, b->sw) && operator() (a->se, b->se);
-    }
+    Node* apply(const LifeRule& rule);
 };

@@ -10,7 +10,7 @@
 #include <vector>
 #include "HashLife.hpp"
 
-HashLife life;
+HashLife* life;
 
 std::vector<unsigned long> clocks;
 
@@ -25,43 +25,39 @@ void printAll() {
         printf("%.5f\n", ms(i));
 }
 
-int n = 1;
+int n = 20;
+
+int x = -1;
+int y = -1;
 
 int main(int argc, const char * argv[]) {
-    life.set(0, 1, 1, life.getRoot());
-    life.set(1, 0, 1, life.getRoot());
-    life.set(2, 0, 1, life.getRoot());
-    life.set(2, 1, 1, life.getRoot());
-    life.set(2, 2, 1, life.getRoot());
+    Node::init();
     
-    /*
-    life.set(0, 0, 1, life.getRoot());
-    life.set(1, 0, 1, life.getRoot());
-    life.set(0, 1, 1, life.getRoot());
-    life.set(1, 1, 1, life.getRoot());
-     */
+    life = new HashLife();
     
-    //life.getRoot()->print();
+    life->set(0 + x, 1 + y, 1);
+    life->set(1 + x, 0 + y, 1);
+    life->set(2 + x, 0 + y, 1);
+    life->set(2 + x, 1 + y, 1);
+    life->set(2 + x, 2 + y, 1);
     
     mark;
     
     for(int i = 0; i < n; ++i) {
-        life.step();
+        life->step();
     }
     
     mark;
     
     printAll();
-    
-    //life.getRoot()->print();
-    
-    printf("population: %ld \n", life.getRoot()->population);
         
-    printf("root size: %d \n", life.getRoot()->level);
+    printf("population: %ld \n", life->getRoot()->population);
+        
+    printf("root size: %d \n", life->getRoot()->level);
     
-    printf("gen: %zu \n", life.generations);
+    printf("gen: %zu \n", life->generations);
     
-    printf("%.4f MB \n", life.poolBytes() * 0.000001f);
+    Node::free();
     
     return 0;
 }

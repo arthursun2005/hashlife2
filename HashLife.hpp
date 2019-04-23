@@ -9,52 +9,38 @@
 #ifndef HashLife_hpp
 #define HashLife_hpp
 
-#include "NodePool.hpp"
-#include "HashMap.h"
+#include "Node.h"
 #include <unordered_map>
 
 class HashLife
 {
     
 protected:
-    
-    NodePool pool;
-    
+        
     Node* root;
-    
+        
     std::unordered_map<Node*, Node*> cache;
-    
-    //HashMap<Node*, Node*> cache;
     
     LifeRule rule;
     
-    Node* solve(Node*);
-    
-    void expandOnce();
-        
 public:
     
     size_t generations = 0;
     
     HashLife() {
-        root = pool.alloc(3);
-        root->clear();
+        root = Node::create(5);
     }
     
     ~HashLife() {
-    }
-    
-    size_t poolBytes() {
-        return pool.bytes();
     }
     
     void step();
     
     Node*& getRoot();
     
-    char set(int x, int y, int k, Node* node);
+    void set(int x, int y, int k);
     
-    char at(int x, int y, Node* node) const;
+    char at(int x, int y) const;
 };
 
 #endif /* HashLife_hpp */
