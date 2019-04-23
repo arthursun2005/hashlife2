@@ -22,11 +22,14 @@ void HashLife::step()
     generations += 1L << (root->level - 2);
 }
 
-void HashLife::set(int x, int y, int k) {
+void HashLife::set(long long x, long long y, int k) {
+    while(root->outside(x, y)) {
+        root = root->expand();
+    }
     root = root->set(x, y, k);
 }
 
-char HashLife::at(int x, int y) const
+char HashLife::at(long long x, long long y) const
 {
     return root->at(x, y);
 }

@@ -105,36 +105,32 @@ struct Node
         return (data&(1 << i)) >> i;
     }
     
-    Node* set(int x, int y, int k) const
+    Node* set(long long x, long long y, int k) const
     {
         if(isLeaf()) {
             char q[] = {at(3), at(2), at(1), at(0)};
             q[-2 * y + x + 1] = k;
-            
             return create(q[0], q[1], q[2], q[3]);
         }
         
-        int qwidth = 1 << (level - 2);
-        Node* q[] = {nw, ne, sw, se};
-        
+        long long qwidth = 1 << (level - 2);
+
         if(x >= 0) {
             if(y >= 0) {
-                q[1] = ne->set(x - qwidth, y - qwidth, k);
+                return create(nw, ne->set(x - qwidth, y - qwidth, k), sw, se);
             }else{
-                q[3] = se->set(x - qwidth, y + qwidth, k);
+                return create(nw, ne, sw, se->set(x - qwidth, y + qwidth, k));
             }
         }else{
             if(y >= 0) {
-                q[0] = nw->set(x + qwidth, y - qwidth, k);
+                return create(nw->set(x + qwidth, y - qwidth, k), ne, sw, se);
             }else{
-                q[2] = sw->set(x + qwidth, y + qwidth, k);
+                return create(nw, ne, sw->set(x + qwidth, y + qwidth, k), se);
             }
         }
-        
-        return create(q[0], q[1], q[2], q[3]);
     }
     
-    char at(int x, int y) const
+    char at(long long x, long long y) const
     {
         if(population == 0)
             return 0;
@@ -142,7 +138,7 @@ struct Node
         if(isLeaf()) {
             return at(y * 2 - x + 2);
         }else{
-            int qwidth = 1 << (level - 2);
+            long long qwidth = 1 << (level - 2);
             
             if(x >= 0) {
                 if(y >= 0) {
@@ -160,16 +156,26 @@ struct Node
         }
     }
     
-    inline void print() const
-    {
-        int width = 1 << level;
-        int hwidth = 1 << (level - 1);
-        for(int y = width - 1; y >= 0; --y) {
-            for(int x = 0; x < width; ++x) {
-                printf("%c", at(x - hwidth, y - hwidth) * 3 + ' ');
-            }
-            printf("\n");
+    bool outside(long long x, long long y) {
+        long long hwidth = 1 << (level - 1);
+        
+        if(x < 0 && x < -hwidth) {
+            return true;
         }
+        
+        if(x >= 0 && x >= hwidth) {
+            return true;
+        }
+        
+        if(y < 0 && y < -hwidth) {
+            return true;
+        }
+        
+        if(y >= 0 && y >= hwidth) {
+            return true;
+        }
+        
+        return false;
     }
     
     inline bool isLeaf() const

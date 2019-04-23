@@ -41,6 +41,8 @@ int main(int argc, const char * argv[]) {
     life->set(2 + x, 1 + y, 1);
     life->set(2 + x, 2 + y, 1);
     
+    printf("starting population: %llu \n", life->getRoot()->population);
+    
     mark;
     
     for(int i = 0; i < n; ++i) {

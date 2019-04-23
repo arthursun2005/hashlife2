@@ -25,7 +25,7 @@ public:
     unsigned long long generations = 0;
     
     HashLife() {
-        root = Node::create(5);
+        root = Node::create(4);
     }
     
     ~HashLife() {
@@ -35,9 +35,9 @@ public:
     
     Node*& getRoot();
     
-    void set(int x, int y, int k);
+    void set(long long x, long long y, int k);
     
-    char at(int x, int y) const;
+    char at(long long x, long long y) const;
 };
 
 #endif /* HashLife_hpp */
