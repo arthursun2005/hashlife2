@@ -72,7 +72,7 @@ struct Node
         }
     }
     
-    Node(Node* nw, Node* ne, Node* sw, Node* se)  : level(nw->level + 1), population(nw->population + ne->population + sw->population + se->population), data(0), nw(nw), ne(ne), sw(sw), se(se), hash(nw->hash + ne->hash * 11 + sw->hash * 511 + se->hash * 10007) {
+    Node(Node* nw, Node* ne, Node* sw, Node* se)  : level(nw->level + 1), population(nw->population + ne->population + sw->population + se->population), data(0), nw(nw), ne(ne), sw(sw), se(se), hash(nw->hash + ne->hash * 101 + sw->hash * 10007 + se->hash * 1300031) {
     }
     
     ~Node() {
@@ -80,24 +80,26 @@ struct Node
     
     Node* find() {
         auto it = hashSet->find(this);
+        
         if(it != hashSet->end()) {
-            delete this;
             return *it;
         }
-        hashSet->insert(this);
-        return this;
+        
+        Node* n = new Node(*this);
+        hashSet->insert(n);
+        return n;
     }
     
     inline static Node* create(int level) {
-        return (new Node(level))->find();
+        return (Node(level)).find();
     }
     
     inline static Node* create(char nw, char ne, char sw, char se) {
-        return (new Node(nw, ne, sw, se))->find();
+        return (Node(nw, ne, sw, se)).find();
     }
     
     inline static Node* create(Node* nw, Node* ne, Node* sw, Node* se) {
-        return (new Node(nw, ne, sw, se))->find();
+        return (Node(nw, ne, sw, se)).find();
     }
     
     inline char at(char i) const

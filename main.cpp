@@ -27,8 +27,8 @@ void printAll() {
 
 int n = 60;
 
-int x = 0;
-int y = 0;
+int x = -1;
+int y = -1;
 
 int main(int argc, const char * argv[]) {
     Node::init();
@@ -54,12 +54,14 @@ int main(int argc, const char * argv[]) {
     printAll();
     
     printf("population: %llu \n", life->getRoot()->population);
-        
+    
     printf("root size: %d \n", life->getRoot()->level);
     
     printf("gen: %llu \n", life->generations);
     
     Node::free();
+    
+    delete life;
     
     return 0;
 }

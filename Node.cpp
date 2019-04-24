@@ -8,12 +8,12 @@
 
 #include "Node.h"
 
-size_t std::hash<Node*>::operator () (const Node* node) const
+inline size_t std::hash<Node*>::operator () (const Node* node) const
 {
     return node->hash;
 }
 
-bool std::equal_to<Node*>::operator () (const Node* a, const Node* b) const
+inline bool std::equal_to<Node*>::operator () (const Node* a, const Node* b) const
 {
     if(a->level != b->level)
         return false;
