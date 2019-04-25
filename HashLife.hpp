@@ -22,7 +22,7 @@ protected:
     
 public:
     
-    double generations = 0;
+    long double generations = 0;
     
     HashLife() {
         root = Node::create(4);

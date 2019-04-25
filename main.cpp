@@ -69,7 +69,7 @@ void readPattern(std::istream &in) {
     }
 }
 
-int n = 20;
+int n = 500;
 
 int x = -1;
 int y = -1;
@@ -79,11 +79,11 @@ int main(int argc, const char * argv[]) {
     
     life = new HashLife();
     
-    std::ifstream file("justyna.rle");
+    std::ifstream file("spacefiller.rle");
     
     readPattern(file);
     
-    printf("starting population: %.0f \n", life->getRoot()->population);
+    printf("starting population: %.0Lf \n", life->getRoot()->population);
     
     mark;
     
@@ -95,8 +95,8 @@ int main(int argc, const char * argv[]) {
     
     printAll();
     
-    printf("population: %.0f \n", life->getRoot()->population);
-    printf("gen: %.0f \n", life->generations);
+    printf("population: %.0Lf \n", life->getRoot()->population);
+    printf("gen: %.0Lf \n", life->generations);
     
     Node::free();
     

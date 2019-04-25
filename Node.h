@@ -39,7 +39,7 @@ struct Node
     
     Node* result = NULL;
     
-    const double population;
+    const long double population;
     
     const int level;
     
