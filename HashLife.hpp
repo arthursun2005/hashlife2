@@ -15,14 +15,14 @@ class HashLife
 {
     
 protected:
-        
+    
     Node* root;
     
     LifeRule rule;
     
 public:
     
-    unsigned long long generations = 0;
+    double generations = 0;
     
     HashLife() {
         root = Node::create(4);

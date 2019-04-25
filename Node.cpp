@@ -107,4 +107,4 @@ Node* Node::apply(const LifeRule& rule) {
     return create(_nw, _ne, _sw, _se);
 }
 
-std::unordered_set<Node*>* Node::hashSet = NULL;
+Node::Set* Node::hashSet = NULL;

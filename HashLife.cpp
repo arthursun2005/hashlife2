@@ -19,7 +19,7 @@ void HashLife::step()
     
     root = root->step(rule);
     
-    generations += 1L << (root->level - 2);
+    generations += pow(2.0f, (root->level - 2));
 }
 
 void HashLife::set(long long x, long long y, int k) {

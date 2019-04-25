@@ -28,7 +28,9 @@ struct std::equal_to<Node*>
 
 struct Node
 {
-    static std::unordered_set<Node*>* hashSet;
+    using Set = std::unordered_set<Node*>;
+    
+    static Set* hashSet;
     
     Node* nw;
     Node* ne;
@@ -37,16 +39,16 @@ struct Node
     
     Node* result = NULL;
     
+    const double population;
+    
     const int level;
     
     const char data;
     
-    const unsigned long long population;
-    
     const size_t hash;
     
     static void init() {
-        hashSet = new std::unordered_set<Node*>();
+        hashSet = new Set();
     }
     
     static void free() {
@@ -78,7 +80,7 @@ struct Node
     ~Node() {
     }
     
-    Node* find() {
+    inline Node* find() {
         auto it = hashSet->find(this);
         
         if(it != hashSet->end()) {

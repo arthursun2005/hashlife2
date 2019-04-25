@@ -8,6 +8,7 @@
 
 #include <iostream>
 #include <vector>
+#include <fstream>
 #include "HashLife.hpp"
 
 HashLife* life;
@@ -25,7 +26,50 @@ void printAll() {
         printf("%.5f\n", ms(i));
 }
 
-int n = 60;
+void readPattern(std::istream &in) {
+    long long startX = 0, startY = 0;
+    long long x = startX, y = startY;
+    std::string str;
+    
+    unsigned int _num = 0;
+    
+    while(std::getline(in, str)) {
+        if(str.size() < 1)
+            return;
+        
+        if(str.front() == '#' || str.front() == 'x') {
+            std::cout << str << std::endl;
+            continue;
+        }
+        
+        for(char& c : str) {
+            unsigned int num = _num == 0 ? 1 : _num;
+            
+            if(c == 'b') {
+                while(num-- > 0)
+                    life->set(x++, y, 0);
+                _num = 0;
+            }else if(c == 'o') {
+                while(num-- > 0)
+                    life->set(x++, y, 1);
+                _num = 0;
+            }else if(c == '$') {
+                y += num;
+                x = startX;
+                _num = 0;
+            }else if(c >= '0' && c <= '9') {
+                _num = _num * 10 + c - '0';
+            }else if(c == '!') {
+                return;
+            }else{
+                std::cout << "error in rle" << std::endl;
+                return;
+            }
+        }
+    }
+}
+
+int n = 20;
 
 int x = -1;
 int y = -1;
@@ -35,13 +79,11 @@ int main(int argc, const char * argv[]) {
     
     life = new HashLife();
     
-    life->set(0 + x, 1 + y, 1);
-    life->set(1 + x, 0 + y, 1);
-    life->set(2 + x, 0 + y, 1);
-    life->set(2 + x, 1 + y, 1);
-    life->set(2 + x, 2 + y, 1);
+    std::ifstream file("justyna.rle");
     
-    printf("starting population: %llu \n", life->getRoot()->population);
+    readPattern(file);
+    
+    printf("starting population: %.0f \n", life->getRoot()->population);
     
     mark;
     
@@ -53,11 +95,8 @@ int main(int argc, const char * argv[]) {
     
     printAll();
     
-    printf("population: %llu \n", life->getRoot()->population);
-    
-    printf("root size: %d \n", life->getRoot()->level);
-    
-    printf("gen: %llu \n", life->generations);
+    printf("population: %.0f \n", life->getRoot()->population);
+    printf("gen: %.0f \n", life->generations);
     
     Node::free();
     
